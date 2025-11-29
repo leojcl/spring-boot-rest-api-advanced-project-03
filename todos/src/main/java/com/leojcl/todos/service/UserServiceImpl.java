@@ -1,13 +1,16 @@
 package com.leojcl.todos.service;
 
+import com.leojcl.todos.entity.Authority;
 import com.leojcl.todos.entity.User;
 import com.leojcl.todos.repository.UserRepository;
-import jakarta.transaction.Transactional;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import com.leojcl.todos.response.UserResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.nio.file.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 
 @Service
@@ -20,13 +23,52 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    @Transactional
-    public User getUserInfo() {
+    @Transactional(readOnly = true)
+    public UserResponse getUserInfo() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication == null) || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymouseUser "){
-            throw new AccessDeniedException("Authentication required");
+
+        if(authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymouseUser")){
+            throw  new AccessDeniedException("Authentication required");
         }
-        return (User) authentication.getPrincipal();
+
+        User user  =  (User) authentication.getPrincipal();
+
+        return new UserResponse(
+                user.getId(),
+                user.getFirstName() + " " + user.getLastName(),
+                user.getEmail(),
+                user.getAuthorities().stream().map(auth -> (Authority) auth).toList()
+        );
     }
+
+    @Override
+    public void deleteUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymouseUser")){
+            throw  new AccessDeniedException("Authentication required");
+        }
+
+        User user  =  (User) authentication.getPrincipal();
+
+        if(isLastAdmin(user)){
+            throw  new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin cannot delete itself");
+        }
+
+        // is LastAdmin
+        userRepository.delete(user);
+    }
+
+    private boolean isLastAdmin(User user){
+        boolean isAdmin = user.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority())    );
+
+        if(isAdmin){
+            long adminCount = userRepository.countAdminUsers();
+            return adminCount <= 1;
+        }
+        return  false;
+    }
+
 }

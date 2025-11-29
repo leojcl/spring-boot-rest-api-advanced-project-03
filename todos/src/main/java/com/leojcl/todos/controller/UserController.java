@@ -1,8 +1,9 @@
 package com.leojcl.todos.controller;
 
-import com.leojcl.todos.entity.User;
+import com.leojcl.todos.response.UserResponse;
 import com.leojcl.todos.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -18,7 +20,12 @@ public class UserController {
     }
 
     @GetMapping("/info")
-    public User getUserInfo(){
+    public UserResponse getUserInfo(){
         return  userService.getUserInfo();
+    }
+
+    @DeleteMapping
+    public void deleteUser(){
+        userService.deleteUser();
     }
 }
