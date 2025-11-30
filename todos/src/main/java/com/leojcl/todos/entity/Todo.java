@@ -34,9 +34,7 @@ public class Todo {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    public Todo(long id, String title, String description, int priority, boolean complete, User owner) {
-
-        this.id = id;
+    public Todo( String title, String description, int priority, boolean complete, User owner) {
         this.title = title;
         this.description = description;
         this.priority = priority;
