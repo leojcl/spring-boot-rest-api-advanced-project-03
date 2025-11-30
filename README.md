@@ -173,3 +173,25 @@ UnsupportedJwtException – thuật toán không hỗ trợ
 IllegalArgumentException – token null/empty
 
 Việc parse bằng parseClaimsJws() có thể ném những lỗi này.
+
+Flow hoạt động của Todo project: 
+* Flow đăng ký: POST/api/auth/register 
+	Client -> AuthenticationController.register() -> Impl : kiểm tra email đã tồn tại chưa, tạo user mới, mã hóa password và gán quyền -> lưu vào DB 
+* FLow đăng nhập: POST/api/auth/login 
+	Client gửi email/pass -> AuthenticationControllerLogin() -> Impl: AuthenticationManager xác thực credentials, tìm user trong DB theo email, JwtService.generateToken()
+	để tạo token -> trả về authenticationREsponse chứa token.
+* FLow xác thực request: Mỗi request đến API trừ api/auth đều đi qua Filter:
+	JWTAuthenticationFilter.doFilterInternal() : 
+		+ Đọc header "Authorization: Bearer {token}
+		+ Check xem có không hoặc có đúng format không, nếu không thì sẽ cho request đi tiếp ( nhưng sẽ reject ở SecurityConfig)
+		+ extract token, cắt bỏ bearer 
+		+ extract username, lấy email từ token 
+		+ nếu chưa authenticated thì load user detail từ DB theo email 
+		+ jwtService sẽ kiểm tra user từ DB theo email xem có hợp lệ hay không, user name khớp, token chưa expired 
+		+ Tạo userNamPassAuthenticationToken  và set vào securityContextHolder 
+		+ request tiếp tục đi đến controller 
+* FLow create todo: POST/api/todos: 
+	Client sẽ gửi todoRequest: title, des,... -> JWTAuthenticationFilter xác thực -> todoController.createTodo -> Impl 
+	GetAuthenticatedUser: lấy user từ SecurityContextHolder -> tạo entity và gán owner authen và complete = false vào 
+	cho lưu vào DB -> convert sang toDoResponse -> trả về cho client
+	

@@ -50,7 +50,7 @@ public class User implements UserDetails {
     @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
     private List<Authority> authorities;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true) // because cascade = ALL and orphanRemoval = true, so all todos of user also will be removed
     private List<Todo> todos;
 
     public User(long id, String firstName, String lastName, String email, String password, Date createAt, Date updateAt) {

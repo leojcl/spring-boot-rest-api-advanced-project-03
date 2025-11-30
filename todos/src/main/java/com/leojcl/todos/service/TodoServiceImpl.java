@@ -38,7 +38,7 @@ public class TodoServiceImpl implements TodoService{
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) // only get current user, help to optimal performance, data isolation
     public List<TodoResponse> getAllTodos() {
 
         User user = findAuthenticatedUser.getAuthenticatedUser();

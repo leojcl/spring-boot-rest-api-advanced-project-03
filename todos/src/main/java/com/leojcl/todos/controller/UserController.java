@@ -4,6 +4,7 @@ import com.leojcl.todos.request.PasswordUpdateRequest;
 import com.leojcl.todos.response.UserResponse;
 import com.leojcl.todos.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +33,7 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/password")
-    public void updatePassword(PasswordUpdateRequest passwordUpdateRequest){
+    public void updatePassword(@Valid @RequestBody PasswordUpdateRequest passwordUpdateRequest){
         userService.updatePassword(passwordUpdateRequest);
     }
 }
